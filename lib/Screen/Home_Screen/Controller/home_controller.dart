@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mounarch/Constant/global.dart';
+import 'package:mounarch/Screen/Home_Screen/Model/news_model.dart';
+import 'package:mounarch/Screen/Home_Screen/Model/todo_model.dart';
 
 import 'package:mounarch/Screen/Home_Screen/Model/user_data.dart';
 
@@ -15,6 +17,8 @@ class HomeController extends GetxController {
   final db = FirebaseFirestore.instance.collection('userData');
 
   List<UserData> userList = [];
+  List<Article> newsList = [];
+  List<TodoApiModel> todoApi = [];
   RxBool isLoading = false.obs;
   RxBool loading = false.obs;
   RxString userId = ''.obs;
@@ -28,6 +32,8 @@ class HomeController extends GetxController {
     getAll();
     getUserData();
     fetchUserData();
+    getNewsData();
+    getTodoData();
   }
 
   void getAll() async {
@@ -65,7 +71,7 @@ class HomeController extends GetxController {
 
   Future<void> getUserData() async {
     loading.value = true;
-    update(['home']);
+    update(['user']);
     try {
       final response = await Dio().get(
         Global.hostUrl, // Replace with Global.hostUrl if needed
@@ -79,13 +85,13 @@ class HomeController extends GetxController {
         final userResponse = UserResponse.fromJson(response.data);
         // Store the user data in the userList
         userList = userResponse.data;
-        update(['home']); // Update UI with the new data
+        update(['user']); // Update UI with the new data
       } else {
         loading.value = false;
-        update(['home']);
+        update(['user']);
         Get.snackbar("Invalid Data", "Failed to fetch the user data");
       }
-      update(['home']);
+      update(['user']);
     } on DioException catch (error) {
       String errorMessage = error.type == DioExceptionType.connectionError
           ? "Network Error"
@@ -94,11 +100,83 @@ class HomeController extends GetxController {
               : "Something went wrong: $error";
       Get.snackbar("Error", errorMessage);
     } catch (error) {
-      log('Vehicle rate ERROR: $error');
+      log('user ERROR: $error');
       Get.snackbar("Error", "$error");
     } finally {
       loading.value = false;
-      update(['home']);
+      update(['user']);
+    }
+  }
+
+  Future<void> getNewsData() async {
+    loading.value = true;
+    update(['news']);
+    try {
+      final response = await Dio().get(
+        Global.newsApi, // Replace with Global.hostUrl if needed
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+      log('API response: ${response.data}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Parse the JSON data into UserResponse model
+        final newsResponse = NewsData.fromJson(response.data);
+        // Store the user data in the userList
+        newsList = newsResponse.articles!;
+        update(['news']); // Update UI with the new data
+      } else {
+        loading.value = false;
+        update(['news']);
+        Get.snackbar("Invalid Data", "Failed to fetch the news data");
+      }
+      update(['news']);
+    } on DioException catch (error) {
+      String errorMessage = error.type == DioExceptionType.connectionError
+          ? "Network Error"
+          : error.type == DioExceptionType.connectionTimeout
+              ? "Time Out"
+              : "Something went wrong: $error";
+      Get.snackbar("Error", errorMessage);
+    } catch (error) {
+      log('news api: $error');
+      Get.snackbar("Error", "$error");
+    } finally {
+      loading.value = false;
+      update(['news']);
+    }
+  }
+
+  Future<void> getTodoData() async {
+    try {
+      final response = await Dio().get(
+        'https://jsonplaceholder.typicode.com/todos',
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Parse the JSON data into a list of TodoApiModel
+        final todoList = (response.data as List)
+            .map((item) => TodoApiModel.fromJson(item))
+            .toList();
+
+        // Store the todo data in the todoApi list
+        todoApi = todoList;
+        update(['todo']); // Update UI with the new data
+      } else {
+        Get.snackbar("Invalid Data", "Failed to fetch the todo data");
+      }
+    } on DioException catch (error) {
+      String errorMessage = error.type == DioExceptionType.connectionError
+          ? "Network Error"
+          : error.type == DioExceptionType.connectionTimeout
+              ? "Time Out"
+              : "Something went wrong: $error";
+      Get.snackbar("Error", errorMessage);
+    } catch (error) {
+      Get.snackbar("Error", "$error");
     }
   }
 }
