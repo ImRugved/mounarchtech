@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "513914181670",
+    "project_id": "mounarchtech-ac3b9",
+    "storage_bucket": "mounarchtech-ac3b9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:513914181670:android:8e258c3619d7546ab2aee7",
+        "android_client_info": {
+          "package_name": "com.example.mounarch"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzppyk8HYetSsbvPhFfJG793njHiAtwNc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
