@@ -6,8 +6,8 @@ import 'package:mounarch/Screen/Home_Screen/Controller/home_controller.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  Widget _buildProfileImage(String? base64Image) {
-    if (base64Image == null || base64Image.isEmpty) {
+  Widget _buildProfileImage(String? url) {
+    if (url == null || url.isEmpty) {
       return const CircleAvatar(
         radius: 50,
         child: Icon(Icons.person, size: 50),
@@ -17,8 +17,8 @@ class ProfileScreen extends StatelessWidget {
     return CircleAvatar(
       radius: 50,
       child: ClipOval(
-        child: Image.memory(
-          base64Decode(base64Image),
+        child: Image.network(
+          url,
           width: 100,
           height: 100,
           fit: BoxFit.cover,

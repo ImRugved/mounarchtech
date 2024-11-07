@@ -28,6 +28,7 @@ class LoginController extends GetxController {
   RxBool isVisible = false.obs;
   RxBool signupLoading = false.obs;
   final Rx<File?> profileImage = Rx<File?>(null);
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final users = FirebaseFirestore.instance.collection('userData').obs;
   Future<void> takeProfilePicture() async {
@@ -36,10 +37,9 @@ class LoginController extends GetxController {
       final XFile? photo = await picker.pickImage(
         source: ImageSource.camera,
         preferredCameraDevice: CameraDevice.front,
-        // Compress image to reduce size
-        imageQuality: 50, // Adjust quality (0-100)
-        maxWidth: 1024, // Limit max width
-        maxHeight: 1024, // Limit max height
+        imageQuality: 50,
+        maxWidth: 1024,
+        maxHeight: 1024,
       );
 
       if (photo != null) {
@@ -56,10 +56,17 @@ class LoginController extends GetxController {
     }
   }
 
-  Future<String> _imageToBase64(File imageFile) async {
-    List<int> imageBytes = await imageFile.readAsBytes();
-    String base64Image = base64Encode(imageBytes);
-    return base64Image;
+  Future<String> uploadImageToFirebase(File imageFile) async {
+    String fileName =
+        'profile_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
+
+    UploadTask uploadTask = storageRef.putFile(imageFile);
+
+    TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
+    var url = await snapshot.ref.getDownloadURL();
+    log('url is $url');
+    return url;
   }
 
   void signUp(BuildContext context, String email, String password,
@@ -93,7 +100,9 @@ class LoginController extends GetxController {
         .createUserWithEmailAndPassword(email: email, password: password)
         .then((value) async {
       String uid = await _getNextUserId();
-      String base64Image = await _imageToBase64(profileImage.value!);
+
+      // Upload profile image to Firebase Storage and get the URL
+      String imageUrl = await uploadImageToFirebase(profileImage.value!);
 
       // Insert user data into Firestore with image URL
       await users.value.doc(value.user!.uid).set({
@@ -101,10 +110,20 @@ class LoginController extends GetxController {
         "userId": uid,
         "email": email,
         "number": numberController.text,
-        "profilePicUrl": base64Image, // Added image URL
+        "profilePicUrl": imageUrl, // Use the Firebase Storage URL
         "signUpTime": DateFormat('hh:mm:ss a').format(DateTime.now()),
         "signUpDate": DateFormat('dd-MMM-yyyy').format(DateTime.now()),
-      });
+      }).then(
+        (value) {
+          signupLoading.value = false;
+          update(['signUp']);
+        },
+      ).onError(
+        (error, stackTrace) {
+          signupLoading.value = false;
+          update(['signUp']);
+        },
+      );
 
       Toast().toastMessage(
         message: "Signup Successful",
@@ -125,18 +144,21 @@ class LoginController extends GetxController {
       update(['signUp']);
     }).onError((error, stackTrace) {
       String errorMessage = parseFirebaseAuthError(error);
-      log(errorMessage);
+      log("signup erre i $errorMessage");
+      signupLoading.value = false;
+      update(['signUp']);
       Toast().toastMessage(
         message: errorMessage,
         bgColor: ConstColors.red,
         textColor: ConstColors.white,
         textsize: 12.sp,
       );
-
+    }).whenComplete(() {
       signupLoading.value = false;
       update(['signUp']);
     });
   }
+
   // Method to sign up the user
   // void signUp(BuildContext context, String email, String password,
   //     String userName) async {

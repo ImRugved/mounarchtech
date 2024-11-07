@@ -13,8 +13,8 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<String> containerLabels = [
       "Users Data Api",
-      "News Api\n5.5k+ News",
-      "Todo Data APi",
+      "Books APi",
+      "Todo Data APi\n 200 Data",
     ];
     final List<Color> containerColors = [
       Colors.red,

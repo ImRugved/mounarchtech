@@ -41,48 +41,55 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDrFwQv1gEgIVTokaGj6EudFnJmSfpiDAY',
-    appId: '1:513914181670:web:8e328494094e948bb2aee7',
-    messagingSenderId: '513914181670',
-    projectId: 'mounarchtech-ac3b9',
-    authDomain: 'mounarchtech-ac3b9.firebaseapp.com',
-    storageBucket: 'mounarchtech-ac3b9.firebasestorage.app',
-    measurementId: 'G-3BZPVX1DLN',
+    apiKey: 'AIzaSyAfzNU2nMcYv4MVPWdYg9UOhfz0_vQwMVY',
+    appId: '1:634422634299:web:149c00962402a46c65f91e',
+    messagingSenderId: '634422634299',
+    projectId: 'fir-curd-60b78',
+    authDomain: 'fir-curd-60b78.firebaseapp.com',
+    databaseURL: 'https://fir-curd-60b78-default-rtdb.firebaseio.com',
+    storageBucket: 'fir-curd-60b78.appspot.com',
+    measurementId: 'G-FHVLJ2HB0M',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAzppyk8HYetSsbvPhFfJG793njHiAtwNc',
-    appId: '1:513914181670:android:8e258c3619d7546ab2aee7',
-    messagingSenderId: '513914181670',
-    projectId: 'mounarchtech-ac3b9',
-    storageBucket: 'mounarchtech-ac3b9.firebasestorage.app',
+    apiKey: 'AIzaSyDmoxS79cNTox3Jd6JvSR2RuOSSoiLXVzk',
+    appId: '1:634422634299:android:d073e22edb01c3b165f91e',
+    messagingSenderId: '634422634299',
+    projectId: 'fir-curd-60b78',
+    databaseURL: 'https://fir-curd-60b78-default-rtdb.firebaseio.com',
+    storageBucket: 'fir-curd-60b78.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBkdsbqI-2seUJRQOOZFSz4jt-G_6n8iRA',
-    appId: '1:513914181670:ios:0483c14353c5e06bb2aee7',
-    messagingSenderId: '513914181670',
-    projectId: 'mounarchtech-ac3b9',
-    storageBucket: 'mounarchtech-ac3b9.firebasestorage.app',
+    apiKey: 'AIzaSyAaxOqKEZDOx9Gk_BEljdBVembSLBp695M',
+    appId: '1:634422634299:ios:c1b0aee901f11a2a65f91e',
+    messagingSenderId: '634422634299',
+    projectId: 'fir-curd-60b78',
+    databaseURL: 'https://fir-curd-60b78-default-rtdb.firebaseio.com',
+    storageBucket: 'fir-curd-60b78.appspot.com',
+    iosClientId: '634422634299-65rve8qndu9mnp6eb2fpv4v78j9s0ri6.apps.googleusercontent.com',
     iosBundleId: 'com.example.mounarch',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBkdsbqI-2seUJRQOOZFSz4jt-G_6n8iRA',
-    appId: '1:513914181670:ios:0483c14353c5e06bb2aee7',
-    messagingSenderId: '513914181670',
-    projectId: 'mounarchtech-ac3b9',
-    storageBucket: 'mounarchtech-ac3b9.firebasestorage.app',
+    apiKey: 'AIzaSyAaxOqKEZDOx9Gk_BEljdBVembSLBp695M',
+    appId: '1:634422634299:ios:c1b0aee901f11a2a65f91e',
+    messagingSenderId: '634422634299',
+    projectId: 'fir-curd-60b78',
+    databaseURL: 'https://fir-curd-60b78-default-rtdb.firebaseio.com',
+    storageBucket: 'fir-curd-60b78.appspot.com',
+    iosClientId: '634422634299-65rve8qndu9mnp6eb2fpv4v78j9s0ri6.apps.googleusercontent.com',
     iosBundleId: 'com.example.mounarch',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDrFwQv1gEgIVTokaGj6EudFnJmSfpiDAY',
-    appId: '1:513914181670:web:697cbfa018358481b2aee7',
-    messagingSenderId: '513914181670',
-    projectId: 'mounarchtech-ac3b9',
-    authDomain: 'mounarchtech-ac3b9.firebaseapp.com',
-    storageBucket: 'mounarchtech-ac3b9.firebasestorage.app',
-    measurementId: 'G-2PW1QQ60GS',
+    apiKey: 'AIzaSyAfzNU2nMcYv4MVPWdYg9UOhfz0_vQwMVY',
+    appId: '1:634422634299:web:149c00962402a46c65f91e',
+    messagingSenderId: '634422634299',
+    projectId: 'fir-curd-60b78',
+    authDomain: 'fir-curd-60b78.firebaseapp.com',
+    databaseURL: 'https://fir-curd-60b78-default-rtdb.firebaseio.com',
+    storageBucket: 'fir-curd-60b78.appspot.com',
+    measurementId: 'G-FHVLJ2HB0M',
   );
 }

@@ -1,12 +1,16 @@
+import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mounarch/Constant/global.dart';
-import 'package:mounarch/Screen/Home_Screen/Model/news_model.dart';
+import 'package:mounarch/Screen/Home_Screen/Model/books_model.dart';
 import 'package:mounarch/Screen/Home_Screen/Model/todo_model.dart';
 
 import 'package:mounarch/Screen/Home_Screen/Model/user_data.dart';
@@ -15,9 +19,11 @@ import 'package:mounarch/Utils/api.dart';
 
 class HomeController extends GetxController {
   final db = FirebaseFirestore.instance.collection('userData');
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final RxList<Map<String, dynamic>> data = <Map<String, dynamic>>[].obs;
 
   List<UserData> userList = [];
-  List<Article> newsList = [];
+
   List<TodoApiModel> todoApi = [];
   RxBool isLoading = false.obs;
   RxBool loading = false.obs;
@@ -32,7 +38,7 @@ class HomeController extends GetxController {
     getAll();
     getUserData();
     fetchUserData();
-    getNewsData();
+    getBookData();
     getTodoData();
   }
 
@@ -108,45 +114,6 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> getNewsData() async {
-    loading.value = true;
-    update(['news']);
-    try {
-      final response = await Dio().get(
-        Global.newsApi, // Replace with Global.hostUrl if needed
-        options: Options(
-          headers: {'Content-Type': 'application/json'},
-        ),
-      );
-      log('API response: ${response.data}');
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Parse the JSON data into UserResponse model
-        final newsResponse = NewsData.fromJson(response.data);
-        // Store the user data in the userList
-        newsList = newsResponse.articles!;
-        update(['news']); // Update UI with the new data
-      } else {
-        loading.value = false;
-        update(['news']);
-        Get.snackbar("Invalid Data", "Failed to fetch the news data");
-      }
-      update(['news']);
-    } on DioException catch (error) {
-      String errorMessage = error.type == DioExceptionType.connectionError
-          ? "Network Error"
-          : error.type == DioExceptionType.connectionTimeout
-              ? "Time Out"
-              : "Something went wrong: $error";
-      Get.snackbar("Error", errorMessage);
-    } catch (error) {
-      log('news api: $error');
-      Get.snackbar("Error", "$error");
-    } finally {
-      loading.value = false;
-      update(['news']);
-    }
-  }
-
   Future<void> getTodoData() async {
     try {
       final response = await Dio().get(
@@ -177,6 +144,130 @@ class HomeController extends GetxController {
       Get.snackbar("Error", errorMessage);
     } catch (error) {
       Get.snackbar("Error", "$error");
+    }
+  }
+
+  final Rx<String> name = ''.obs;
+  final Rx<String> email = ''.obs;
+  final Rx<String> number = ''.obs;
+  final Rx<String> address = ''.obs;
+  final Rx<String> image = ''.obs;
+  final Rx<File?> selectedImage = Rx<File?>(null);
+  Rx<BooksModel?> booksModel = Rx<BooksModel?>(null);
+
+  // Fetch data from Firestore
+  Future<void> fetchData() async {
+    final QuerySnapshot snapshot = await firestore.collection('empData').get();
+    data.value =
+        snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+  }
+
+  // Add data to Firestore
+  Future<void> addData() async {
+    String? imageUrl;
+    if (selectedImage.value != null) {
+      imageUrl = await _imageToBase64(selectedImage.value!);
+    }
+
+    await firestore.collection('empData').add({
+      'name': name.value,
+      'email': email.value,
+      'number': number.value,
+      'address': address.value,
+      'image': imageUrl,
+    });
+    clearForm();
+    fetchData();
+    update(['data']);
+  }
+
+  // Update data in Firestore
+  Future<void> updateData(Map<String, dynamic> data) async {
+    String? imageUrl;
+    if (selectedImage.value != null) {
+      imageUrl = await _imageToBase64(selectedImage.value!);
+    }
+
+    await firestore.collection('empData').doc(data['id']).update({
+      'name': name.value,
+      'email': email.value,
+      'number': number.value,
+      'address': address.value,
+      'image': imageUrl,
+    });
+    clearForm();
+    fetchData();
+    update(['data']);
+  }
+
+  // Delete data from Firestore
+  Future<void> deleteData(Map<String, dynamic> data) async {
+    await firestore.collection('users').doc(data['id']).delete();
+    fetchData();
+  }
+
+  // Clear form fields
+  void clearForm() {
+    name.value = '';
+    email.value = '';
+    number.value = '';
+    address.value = '';
+    image.value = '';
+    selectedImage.value = null;
+  }
+
+  // Select image from camera or gallery
+  Future<void> selectImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    if (pickedFile != null) {
+      selectedImage.value = File(pickedFile.path);
+    }
+    update(['data']);
+  }
+
+  Future<String> _imageToBase64(File imageFile) async {
+    List<int> imageBytes = await imageFile.readAsBytes();
+    String base64Image = base64Encode(imageBytes);
+    return base64Image;
+  }
+
+  TextEditingController searchController = TextEditingController();
+  RxString searchTerm = ''.obs;
+  void updateSearchTerm(String term) {
+    searchTerm.value = term.toLowerCase();
+    update(['book']);
+    // Convert to lowercase for case-insensitive search
+  }
+
+  Future<void> getBookData() async {
+    loading.value = true;
+    try {
+      final response = await Dio().get(
+        "https://www.googleapis.com/books/v1/volumes?q=fiction&maxResults=40",
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        booksModel.value = booksModelFromJson(json.encode(response.data));
+      } else {
+        Get.snackbar("Invalid Data", "Failed to fetch the book data");
+      }
+    } on DioException catch (error) {
+      String errorMessage = '';
+      if (error.type == DioExceptionType.connectionError) {
+        errorMessage = "Network Error";
+      } else if (error.type == DioExceptionType.connectionTimeout) {
+        errorMessage = "Time Out";
+      } else {
+        errorMessage = "Something went wrong: ${error.toString()}";
+      }
+
+      Get.snackbar("Error", errorMessage);
+    } catch (error) {
+      Get.snackbar("Error", error.toString());
+    } finally {
+      loading.value = false;
     }
   }
 }

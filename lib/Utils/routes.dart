@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:mounarch/Screen/Dashboard_Screen/dashboard.dart';
 import 'package:mounarch/Screen/Home_Screen/View/home_screen.dart';
-import 'package:mounarch/Screen/Home_Screen/View/news_screen.dart';
+import 'package:mounarch/Screen/Home_Screen/View/books_screen.dart';
 import 'package:mounarch/Screen/Home_Screen/View/todo_screen.dart';
 import 'package:mounarch/Screen/Home_Screen/View/user_screen.dart';
 import 'package:mounarch/Screen/Login_Screen/Bindings/loging_binding.dart';
@@ -26,7 +26,7 @@ class Routes {
     ),
     GetPage(
       name: '/news_screen',
-      page: () => const NewsScreen(),
+      page: () => const BooksScreen(),
     ),
     GetPage(
       name: '/todo_screen',
