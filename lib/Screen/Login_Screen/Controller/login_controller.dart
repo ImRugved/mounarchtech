@@ -31,12 +31,12 @@ class LoginController extends GetxController {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final users = FirebaseFirestore.instance.collection('userData').obs;
+
   Future<void> takeProfilePicture() async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? photo = await picker.pickImage(
-        source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.front,
+        source: ImageSource.gallery,
         imageQuality: 50,
         maxWidth: 1024,
         maxHeight: 1024,
