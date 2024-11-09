@@ -55,11 +55,11 @@ class _BottomNavigationPageState extends State<BottomNavigationPage> {
           unselectedItemColor: ConstColors.darkGrey,
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.article, size: 30),
+              icon: Icon(Icons.home, size: 30),
               label: "",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.home, size: 30),
+              icon: Icon(Icons.article, size: 30),
               label: "",
             ),
             BottomNavigationBarItem(

@@ -1,7 +1,10 @@
 import 'dart:developer';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:mounarch/Constant/const_colors.dart';
 import 'package:mounarch/Screen/Home_Screen/Controller/home_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -18,14 +21,17 @@ class ProfileScreen extends StatelessWidget {
     return CircleAvatar(
       radius: 50,
       child: ClipOval(
-        child: Image.network(
-          url,
+        child: CachedNetworkImage(
+          imageUrl: url,
           width: 100,
           height: 100,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return const Icon(Icons.person, size: 50);
-          },
+          placeholder: (context, url) => SizedBox(
+              height: 20.h,
+              width: 20.w,
+              child: const CircularProgressIndicator()),
+          errorWidget: (context, url, error) =>
+              const Icon(Icons.person, size: 50),
         ),
       ),
     );
@@ -123,24 +129,32 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            controller.signOut();
+                          },
+                          icon: const Icon(Icons.logout, color: Colors.black),
+                          label: const Text(
                             "Logout",
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          IconButton(
-                            onPressed: () {
-                              controller.signOut();
-                            },
-                            icon: const Icon(Icons.logout),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ConstColors.white,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
                           ),
-                        ],
+                        ),
                       ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),

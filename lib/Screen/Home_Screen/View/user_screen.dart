@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -31,7 +32,20 @@ class UserScreen extends StatelessWidget {
                           margin: EdgeInsets.symmetric(vertical: 8.h),
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundImage: NetworkImage(user.avatar),
+                              child: ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: user.avatar,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => SizedBox(
+                                      height: 20.h,
+                                      width: 20.w,
+                                      child: const CircularProgressIndicator()),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.person, size: 50),
+                                ),
+                              ),
                             ),
                             title: Text(
                               '${user.firstName} ${user.lastName}',

@@ -27,21 +27,8 @@ class HomeScreen extends StatelessWidget {
       builder: (controller) {
         return Scaffold(
             appBar: AppBar(
+              centerTitle: true,
               title: Text('Home Screen'),
-              actions: [
-                IconButton(
-                  onPressed: () async {
-                    await GetStorage().erase();
-                    Get.offAllNamed('/login_screen');
-                    controller.signOut();
-                  },
-                  icon: Icon(
-                    Icons.logout_outlined,
-                    color: ConstColors.black,
-                    size: 25.sp,
-                  ),
-                ),
-              ],
             ),
             body: GridView.builder(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),

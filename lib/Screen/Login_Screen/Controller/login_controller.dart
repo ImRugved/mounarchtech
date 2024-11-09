@@ -12,8 +12,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:mounarch/Constant/const_colors.dart';
+import 'package:mounarch/Constant/const_textTheme.dart';
 import 'package:mounarch/Constant/toast.dart';
-import 'package:mounarch/Screen/Login_Screen/View/login_screen.dart';
 
 class LoginController extends GetxController {
   final GetStorage box = GetStorage();
@@ -36,23 +36,27 @@ class LoginController extends GetxController {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? photo = await picker.pickImage(
-        source: ImageSource.gallery,
+        source: ImageSource.camera,
         imageQuality: 50,
         maxWidth: 1024,
         maxHeight: 1024,
       );
-
       if (photo != null) {
         profileImage.value = File(photo.path);
-        update(['profileImage']);
+        update(['profileImage', 'signUp']);
+        Get.snackbar(
+          'Success',
+          'Photo captured successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
       }
     } catch (e) {
-      Toast().toastMessage(
-        message: "Error taking photo: $e",
-        bgColor: ConstColors.red,
-        textColor: ConstColors.white,
-        textsize: 12.sp,
-      );
+      Get.snackbar('User Alert', 'Error taking photo',
+          backgroundColor: ConstColors.red,
+          colorText: ConstColors.white,
+          snackPosition: SnackPosition.TOP);
     }
   }
 
@@ -69,15 +73,16 @@ class LoginController extends GetxController {
     return url;
   }
 
-  void signUp(BuildContext context, String email, String password,
-      String userName) async {
+  void signUp(
+    BuildContext context,
+    String email,
+    String password,
+  ) async {
     if (profileImage.value == null) {
-      Toast().toastMessage(
-        message: "Please select a profile picture",
-        bgColor: ConstColors.red,
-        textColor: ConstColors.white,
-        textsize: 12.sp,
-      );
+      Get.snackbar('User Alert', 'Please select a profile picture',
+          backgroundColor: ConstColors.red,
+          colorText: ConstColors.white,
+          snackPosition: SnackPosition.TOP);
       return;
     }
 
@@ -90,8 +95,11 @@ class LoginController extends GetxController {
     if (existingUser.docs.isNotEmpty) {
       signupLoading.value = false;
       update(['signUp']);
-      Get.snackbar('Error', 'User already exists',
+      Get.snackbar('User Alert', 'User already exists',
+          backgroundColor: ConstColors.red,
+          colorText: ConstColors.white,
           snackPosition: SnackPosition.TOP);
+
       return;
     }
 
@@ -99,6 +107,7 @@ class LoginController extends GetxController {
     _auth
         .createUserWithEmailAndPassword(email: email, password: password)
         .then((value) async {
+      log('emal and passwrd is $email , $password');
       String uid = await _getNextUserId();
 
       // Upload profile image to Firebase Storage and get the URL
@@ -106,10 +115,10 @@ class LoginController extends GetxController {
 
       // Insert user data into Firestore with image URL
       await users.value.doc(value.user!.uid).set({
-        "userName": userNameController.text,
+        "userName": userNameController.text.trim(),
         "userId": uid,
         "email": email,
-        "number": numberController.text,
+        "number": numberController.text.trim(),
         "profilePicUrl": imageUrl, // Use the Firebase Storage URL
         "signUpTime": DateFormat('hh:mm:ss a').format(DateTime.now()),
         "signUpDate": DateFormat('dd-MMM-yyyy').format(DateTime.now()),
@@ -124,39 +133,41 @@ class LoginController extends GetxController {
           update(['signUp']);
         },
       );
+      Get.snackbar('Signup Successful', 'Please login',
+          backgroundColor: ConstColors.green,
+          colorText: ConstColors.white,
+          snackPosition: SnackPosition.TOP);
 
-      Toast().toastMessage(
-        message: "Signup Successful",
-        bgColor: ConstColors.green,
-        textColor: ConstColors.white,
-        textsize: 12.sp,
-      );
-
-      // Clear all fields including image
-      userNameController.clear();
-      passController.clear();
-      passController1.clear();
-      numberController.clear();
-      profileImage.value = null;
+      clearForm();
 
       Get.toNamed('/login_screen');
       signupLoading.value = false;
       update(['signUp']);
     }).onError((error, stackTrace) {
+      clearForm();
+
       String errorMessage = parseFirebaseAuthError(error);
       log("signup erre i $errorMessage");
       signupLoading.value = false;
       update(['signUp']);
-      Toast().toastMessage(
-        message: errorMessage,
-        bgColor: ConstColors.red,
-        textColor: ConstColors.white,
-        textsize: 12.sp,
-      );
+      Get.snackbar('Error', errorMessage,
+          backgroundColor: ConstColors.red,
+          colorText: ConstColors.white,
+          snackPosition: SnackPosition.TOP);
     }).whenComplete(() {
+      clearForm();
       signupLoading.value = false;
       update(['signUp']);
     });
+  }
+
+  void clearForm() {
+    userNameController.clear();
+    numberController.clear();
+    passController.clear();
+    passController1.clear();
+    numberController.clear();
+    profileImage.value = null;
   }
 
   // Method to sign up the user
@@ -211,13 +222,86 @@ class LoginController extends GetxController {
   //     update(['signUp']);
   //   });
   // }
+  void resetPassword() {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text('Reset Password'),
+        content: const Text('Enter your email id to get reset link'),
+        actions: [
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter your email id';
+              }
+              return null;
+            },
+            controller: emailController,
+            decoration: const InputDecoration(hintText: 'Enter email'),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (emailController.text != '') {
+                    forgotloign(emailController.text);
+
+                    Get.back();
+                  } else {
+                    Get.snackbar('User Alert', 'Please enter email',
+                        backgroundColor: ConstColors.red,
+                        colorText: ConstColors.white,
+                        snackPosition: SnackPosition.TOP);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                ),
+                child: Text(
+                  'Send',
+                  style: getTextTheme().bodyMedium,
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  void forgotloign(String email) {
+    _auth.sendPasswordResetEmail(email: email).then((value) {
+      emailController.clear();
+      Get.back();
+      Get.snackbar('User Alert', 'Sent email to reset password',
+          backgroundColor: ConstColors.green,
+          colorText: ConstColors.white,
+          snackPosition: SnackPosition.TOP);
+      //Get.toNamed('/login_screen');
+    }).onError((error, stackTrace) {
+      Get.snackbar('Error', error.toString(), snackPosition: SnackPosition.TOP);
+    });
+  }
 
   // Method to get the next available user ID
   Future<String> _getNextUserId() async {
     final querySnapshot =
         await users.value.orderBy("userId", descending: true).limit(1).get();
+
     if (querySnapshot.docs.isNotEmpty) {
-      return querySnapshot.docs.first["userId"] + 1;
+      // Convert userId to int, increment, then convert back to String
+      int nextUserId = int.parse(querySnapshot.docs.first["userId"]) + 1;
+      return nextUserId.toString();
     } else {
       return '1'; // Start user ID from 1 if there are no users
     }
@@ -246,44 +330,49 @@ class LoginController extends GetxController {
           await box.write('userId', userDoc["userId"]);
 
           log("Username is : ${box.read('userName')}, UserId is : ${box.read('userId')}");
-          Toast().toastMessage(
-            message: "Login Successful",
-            bgColor: ConstColors.green,
-            textColor: ConstColors.white,
-            textsize: 12.sp,
-          );
-          userNameController.clear();
-          passController.clear();
-          passController1.clear();
-          numberController.clear();
-          emailController.clear();
+          Get.snackbar('Login Successful', 'Welcome to my app',
+              backgroundColor: ConstColors.green,
+              colorText: ConstColors.white,
+              snackPosition: SnackPosition.TOP);
+
+          clearForm();
           Get.offAllNamed('/dash_screen');
         } else {
           Get.snackbar('Error', 'User data not found',
+              backgroundColor: ConstColors.red,
+              colorText: ConstColors.white,
               snackPosition: SnackPosition.TOP);
         }
       } else {
         Get.snackbar('Error', 'User not found',
+            backgroundColor: ConstColors.red,
+            colorText: ConstColors.white,
             snackPosition: SnackPosition.TOP);
       }
     } on FirebaseAuthException catch (e) {
+      String errror = '';
       // Handle specific Firebase authentication errors
       String errorMessage = parseFirebaseAuthError(e.code);
-      Toast().toastMessage(
-        message: errorMessage,
-        bgColor: ConstColors.red,
-        textColor: ConstColors.white,
-        textsize: 12.sp,
-      );
+      if (errorMessage == "invalid-credential") {
+        errror = 'Invalid email or password';
+      }
+      Get.snackbar('User Alert', errorMessage,
+          backgroundColor: ConstColors.red,
+          colorText: ConstColors.white,
+          snackPosition: SnackPosition.TOP);
+
       log('Email login error: $errorMessage');
     } catch (e) {
+      String errror = '';
+      if (e == "invalid-credential") {
+        errror = 'Invalid email or password';
+      }
       // Handle any other errors
-      Toast().toastMessage(
-        message: 'An unexpected error occurred: $e',
-        bgColor: ConstColors.red,
-        textColor: ConstColors.white,
-        textsize: 12.sp,
-      );
+      Get.snackbar('Error', errror,
+          backgroundColor: ConstColors.red,
+          colorText: ConstColors.white,
+          snackPosition: SnackPosition.TOP);
+
       log('Email login error: $e');
     } finally {
       loading.value = false; // Ensure loading is false at the end

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mounarch/Constant/const_colors.dart';
 import 'package:mounarch/Constant/const_textTheme.dart';
+import 'package:mounarch/Constant/loading.dart';
 import 'package:mounarch/Screen/Home_Screen/Controller/home_controller.dart';
 
 class SecondScreen extends StatelessWidget {
@@ -22,23 +23,21 @@ class SecondScreen extends StatelessWidget {
         ),
         backgroundColor: Colors.blue,
       ),
-      body: Obx(() => controller.isLoading.value
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildAddBookForm(),
-                    const SizedBox(height: 20),
-                    controller.books.isEmpty ? SizedBox() : _buildSearchBar(),
-                    _buildBooksList(),
-                  ],
-                ),
+      body: Obx(() => SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 16),
+                  _buildAddBookForm(),
+                  const SizedBox(height: 20),
+                  controller.books.isEmpty ? SizedBox() : _buildSearchBar(),
+                  _buildBooksList(),
+                ],
               ),
-            )),
+            ),
+          )),
     );
   }
 
@@ -79,11 +78,14 @@ class SecondScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Add/Update Book', style: getTextTheme().headlineLarge),
+            Center(
+                child: Text('Add/Update/Delete Book',
+                    style: getTextTheme().headlineLarge)),
             const SizedBox(height: 16),
             _buildImagePicker(),
             const SizedBox(height: 16),
             TextField(
+              readOnly: controller.isLoading.value ? true : false,
               controller: controller.bookNameController,
               decoration: const InputDecoration(
                 labelText: 'Book Name',
@@ -93,6 +95,7 @@ class SecondScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             TextField(
+              readOnly: controller.isLoading.value ? true : false,
               controller: controller.authorNameController,
               decoration: const InputDecoration(
                 labelText: 'Author Name',
@@ -102,11 +105,12 @@ class SecondScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             TextField(
+              readOnly: controller.isLoading.value ? true : false,
               controller: controller.bookPriceController,
               decoration: const InputDecoration(
                 labelText: 'Price',
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.attach_money),
+                prefixIcon: Icon(Icons.currency_rupee_outlined),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -133,7 +137,7 @@ class SecondScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 backgroundColor: Colors.blue,
               ),
-            ),
+            ).toProgress(controller.isLoading),
           ],
         ),
       ),
@@ -179,7 +183,7 @@ class SecondScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           ElevatedButton.icon(
-            onPressed: controller.pickImage,
+            onPressed: controller.isLoading.value ? null : controller.pickImage,
             icon: const Icon(Icons.camera_alt),
             label: Text(
               controller.selectedImage.value == null &&
@@ -351,16 +355,18 @@ class SecondScreen extends StatelessWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  if (controller.selectedImage.value != null) {
-                    controller.updateBook(book['bookId']);
-                  } else {
-                    Get.snackbar(
-                      'Error',
-                      'Please select an image for the book',
-                      backgroundColor: ConstColors.red,
-                      colorText: ConstColors.white,
-                    );
-                  }
+                  controller.updateBook(book['bookId']);
+                  // if (controller.selectedImage.value != null) {
+
+                  // }
+                  // else {
+                  //   Get.snackbar(
+                  //     'Error',
+                  //     'Please select an image for the book',
+                  //     backgroundColor: ConstColors.red,
+                  //     colorText: ConstColors.white,
+                  //   );
+                  // }
                   Get.back();
                 },
                 child: const Text('Update Book'),

@@ -7,6 +7,7 @@ import 'package:mounarch/Screen/Home_Screen/View/user_screen.dart';
 import 'package:mounarch/Screen/Login_Screen/Bindings/loging_binding.dart';
 import 'package:mounarch/Screen/Login_Screen/View/login_screen.dart';
 import 'package:mounarch/Screen/Login_Screen/View/signup_screen.dart';
+import 'package:mounarch/Screen/Onboarding_Screen/onboarding.dart';
 import 'package:mounarch/Screen/Profile_Screen/View/profile.dart';
 import 'package:mounarch/Screen/Splash_Screen/splash_screen.dart';
 
@@ -19,6 +20,10 @@ class Routes {
     GetPage(
       name: '/dash_screen',
       page: () => const BottomNavigationPage(),
+    ),
+    GetPage(
+      name: '/intro_screen',
+      page: () => const OnBoardingPage(),
     ),
     GetPage(
       name: '/user_screen',

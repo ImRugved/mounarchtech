@@ -19,10 +19,12 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      box.read("login") == 'login'
-          ? Get.offAllNamed("/dash_screen")
-          : Get.offAllNamed("/login_screen");
+    Future.delayed(const Duration(seconds: 3), () async {
+      await box.read('introDone') == null
+          ? Get.offAllNamed('/intro_screen')
+          : box.read("login") == 'login'
+              ? Get.offAllNamed("/dash_screen")
+              : Get.offAllNamed("/login_screen");
     });
   }
 

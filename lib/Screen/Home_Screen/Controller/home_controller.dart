@@ -43,6 +43,7 @@ class HomeController extends GetxController {
     fetchAndStoreUserData();
     getBookData();
     getTodoData();
+    fetchBooks();
   }
 
   Future<void> handlerefresh() async {
@@ -80,6 +81,7 @@ class HomeController extends GetxController {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      await GetStorage().erase();
       Get.toNamed('/login_screen');
       log("User successfully signed out.");
     } catch (e) {
@@ -204,16 +206,20 @@ class HomeController extends GetxController {
   final bookNameController = TextEditingController();
   final authorNameController = TextEditingController();
   final bookPriceController = TextEditingController();
+  final booksearchController = TextEditingController();
+
   final _storage = FirebaseStorage.instance;
+  final FirebaseDatabase _database = FirebaseDatabase.instance;
+
   final Rx<File?> selectedImage = Rx<File?>(null);
   final currentImageUrl = RxString('');
   final RxList<Map<String, dynamic>> filteredBooks =
       <Map<String, dynamic>>[].obs;
-  final RxBool isSearching = false.obs;
   final RxList<Map<String, dynamic>> books = <Map<String, dynamic>>[].obs;
+  final RxBool isSearching = false.obs;
+
   String? get currentUserId => FirebaseAuth.instance.currentUser?.uid;
-  final FirebaseDatabase _database = FirebaseDatabase.instance;
-  final booksearchController = TextEditingController();
+
   Future<void> pickImage() async {
     try {
       final ImagePicker picker = ImagePicker();
@@ -250,10 +256,7 @@ class HomeController extends GetxController {
         }
       }
 
-      // Upload new image
       UploadTask uploadTask = storageRef.putFile(imageFile);
-
-      // Show upload progress
       uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
         double progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
@@ -298,12 +301,10 @@ class HomeController extends GetxController {
       isLoading.value = true;
       String? imageUrl;
 
-      // Upload image if selected
       if (selectedImage.value != null) {
         imageUrl = await uploadImageToStorage(selectedImage.value!);
         if (imageUrl == null) {
           Get.snackbar('Error', 'Failed to upload image');
-          isLoading.value = false;
           return;
         }
       }
@@ -323,11 +324,10 @@ class HomeController extends GetxController {
         'bookId': bookId,
         'createdAt': ServerValue.timestamp,
       });
-
-      clearForm();
       fetchBooks();
+      clearForm();
       Get.snackbar('Success', 'Book added successfully',
-          backgroundColor: ConstColors.green, colorText: ConstColors.white);
+          backgroundColor: Colors.green, colorText: Colors.white);
     } catch (e) {
       log('send error is $e');
       Get.snackbar('Error', 'Failed to add book: $e');
@@ -337,22 +337,17 @@ class HomeController extends GetxController {
   }
 
   Future<void> updateBook(String bookId) async {
-    if (currentUserId == null) return;
+    log('in update');
+    if (currentUserId == null) {
+      Get.snackbar('Error', 'Please login first');
+      return;
+    }
+
     if (!validateInputs()) return;
 
     try {
+      log('in update');
       isLoading.value = true;
-      String? newImageUrl;
-
-      if (selectedImage.value != null) {
-        newImageUrl = await uploadImageToStorage(selectedImage.value!);
-        if (newImageUrl == null) {
-          Get.snackbar('Error', 'Failed to upload new image');
-          isLoading.value = false;
-          return;
-        }
-      }
-
       Map<String, dynamic> updates = {
         'bookname': bookNameController.text.trim(),
         'author': authorNameController.text.trim(),
@@ -360,8 +355,20 @@ class HomeController extends GetxController {
         'updatedAt': ServerValue.timestamp,
       };
 
-      if (newImageUrl != null) {
-        updates['imageUrl'] = newImageUrl;
+      // Only handle image upload if a new image is selected
+      if (selectedImage.value != null) {
+        String? newImageUrl = await uploadImageToStorage(selectedImage.value!);
+        if (newImageUrl != null) {
+          updates['imageUrl'] = newImageUrl;
+        } else {
+          Get.snackbar('Error', 'Failed to upload new image');
+          return;
+        }
+      }
+
+      // Keep existing image URL if no new image is selected
+      if (selectedImage.value == null && currentImageUrl.isNotEmpty) {
+        updates['imageUrl'] = currentImageUrl.value;
       }
 
       await _database
@@ -372,8 +379,9 @@ class HomeController extends GetxController {
           .update(updates);
 
       Get.snackbar('Success', 'Book updated successfully',
-          backgroundColor: ConstColors.green, colorText: ConstColors.white);
+          backgroundColor: Colors.green, colorText: Colors.white);
       clearForm();
+      Get.back(); // Close the edit dialog
     } catch (e) {
       Get.snackbar('Error', 'Failed to update book: $e');
     } finally {
@@ -406,7 +414,6 @@ class HomeController extends GetxController {
           }
         }
 
-        // Delete the book data from realtime database
         await _database
             .ref()
             .child('books')
@@ -415,12 +422,12 @@ class HomeController extends GetxController {
             .remove();
 
         Get.snackbar('Success', 'Book deleted successfully',
-            backgroundColor: ConstColors.green, colorText: ConstColors.white);
+            backgroundColor: Colors.green, colorText: Colors.white);
       } else {
         Get.snackbar('Error', 'Failed to get book data');
       }
     } catch (e) {
-      log('deleteel erroe is $e');
+      log('delete error is $e');
       Get.snackbar('Error', 'Failed to delete book: $e');
     } finally {
       isLoading.value = false;
@@ -452,7 +459,6 @@ class HomeController extends GetxController {
     }, onError: (error) {
       Get.snackbar('Error', 'Failed to fetch books: $error');
     });
-    update(['book']);
   }
 
   void editBookData(Map<String, dynamic> book) {
@@ -460,7 +466,7 @@ class HomeController extends GetxController {
     authorNameController.text = book['author'] ?? '';
     bookPriceController.text = book['bookprice'] ?? '';
     currentImageUrl.value = book['imageUrl'] ?? '';
-    selectedImage.value = null; // Reset selected image
+    selectedImage.value = null;
   }
 
   bool validateInputs() {
@@ -468,8 +474,8 @@ class HomeController extends GetxController {
       Get.snackbar(
         'Error',
         'Please enter book name',
-        backgroundColor: ConstColors.red,
-        colorText: ConstColors.white,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
       );
       return false;
     }
@@ -477,8 +483,8 @@ class HomeController extends GetxController {
       Get.snackbar(
         'Error',
         'Please enter author name',
-        backgroundColor: ConstColors.red,
-        colorText: ConstColors.white,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
       );
       return false;
     }
@@ -486,8 +492,8 @@ class HomeController extends GetxController {
       Get.snackbar(
         'Error',
         'Please enter book price',
-        backgroundColor: ConstColors.red,
-        colorText: ConstColors.white,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
       );
       return false;
     }

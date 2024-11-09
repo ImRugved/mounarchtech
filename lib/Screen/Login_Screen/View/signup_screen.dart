@@ -229,11 +229,12 @@ class SignUpForm extends StatelessWidget {
                                 context,
                                 ctrl.emailController.text.trim(),
                                 ctrl.passController.text.trim(),
-                                ctrl.userNameController.text.trim(),
                               );
                             } else {
                               Get.snackbar(
                                   'User Alert', 'Passwords does not match',
+                                  backgroundColor: ConstColors.red,
+                                  colorText: ConstColors.white,
                                   snackPosition: SnackPosition.TOP);
                             }
                           }

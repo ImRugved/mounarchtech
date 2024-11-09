@@ -33,6 +33,7 @@ class LoginForm extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          SizedBox(height: 25.h),
                           Text(
                             'Welcome',
                             style: GoogleFonts.poppins(
@@ -44,7 +45,7 @@ class LoginForm extends StatelessWidget {
                           SizedBox(height: 8.h),
                           Image.asset(
                             'assets/images/logo.png',
-                            height: 150.h,
+                            height: 140.h,
                           ),
                           SizedBox(height: 24.h),
                           TextFormField(
@@ -112,7 +113,9 @@ class LoginForm extends StatelessWidget {
                                 Get.snackbar(
                                   'User Alert',
                                   'Please enter valid credentials',
-                                  snackPosition: SnackPosition.BOTTOM,
+                                  snackPosition: SnackPosition.TOP,
+                                  backgroundColor: ConstColors.red,
+                                  colorText: ConstColors.white,
                                 );
                               }
                             },
@@ -125,7 +128,9 @@ class LoginForm extends StatelessWidget {
                           const SizedBox(height: 16),
                           Center(
                             child: TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                controller.resetPassword();
+                              },
                               child: Text('Forgot Password?',
                                   style: getTextTheme().titleSmall),
                             ),
